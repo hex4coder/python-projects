@@ -2,7 +2,6 @@
 # secara banyak
 import openpyxl
 import hashlib
-import random
 import mysql.connector 
 
 
@@ -48,8 +47,7 @@ def insertdata(mydb, listdata):
 def generate_unique_code(nuptk, nama, noHp):
     hashes = ""
 
-    randomnumber = random.randrange(0, 100)
-    hash_object = hashlib.sha1((nuptk + str(randomnumber) ).encode('utf-8') )
+    hash_object = hashlib.sha1((nuptk + str(333) ).encode('utf-8') )
     pbHash = hash_object.hexdigest()
     hash1 = pbHash
     hash1 = hash1[:24]

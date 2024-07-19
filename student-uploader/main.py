@@ -2,7 +2,6 @@
 # secara banyak
 import openpyxl
 import hashlib
-import random
 import mysql.connector 
 
 listKelasXI = [
@@ -17,13 +16,23 @@ listKelasXI = [
     2
 ]
 
+listKelasXII = [
+    "kelas XII",
+    12,
+    13,
+    14,
+    15,
+    18,
+    19,
+    17,
+    16
+]
+
 
 # generate unique code
 def generate_unique_code(nis, nama):
     hashes = ""
-
-    randomnumber = random.randrange(0, 100)
-    hash_object = hashlib.sha1((nis + str(randomnumber) ).encode('utf-8') )
+    hash_object = hashlib.sha1((nis + str(777) ).encode('utf-8') )
     pbHash = hash_object.hexdigest()
     hash1 = pbHash
     hash1 = hash1[:24]
@@ -39,6 +48,21 @@ def generate_unique_code(nis, nama):
     hashes = datatoencode
 
     return hashes
+
+
+
+
+# delete all data
+def deleteAllData(mydb):
+    mycursor = mydb.cursor()
+
+    sql = "DELETE FROM tb_siswa WHERE id_siswa != 0"
+
+    mycursor.execute(sql)
+
+    mydb.commit()
+
+    print(mycursor.rowcount, "record(s) deleted")
 
 
 
@@ -79,7 +103,6 @@ def parsingDataSource(filename, listKelas, startpoint=1):
                 if indexcol == 0 and type(data) == int:
                     # nomor
                     valid = True
-                    id_siswa = id_siswa + 1
                     if data == 1:
                         # kelas baru
                         kelasindex = kelasindex + 1
@@ -88,9 +111,11 @@ def parsingDataSource(filename, listKelas, startpoint=1):
                 if valid:
                     if indexcol == 1:
                         # nis
-                        data = data.replace(" ", "")
-                        dataar = data.split("/")
-                        nis = dataar[1]
+                        dataar = data.split(" ")
+                        if(len(dataar)) > 1:
+                            nis = dataar[2]
+                        else:
+                            nis = dataar[0]
                     elif indexcol == 2:
                         # nama
                         nama = data
@@ -107,14 +132,15 @@ def parsingDataSource(filename, listKelas, startpoint=1):
 
 
         if nama != "" and nis != "" and jk != "":
-            nama = nama.upper()
+            id_siswa = id_siswa + 1
+            nama = nama.upper().strip()
             id_kelas = listKelas[kelasindex]
             kodeunik = generate_unique_code(nis, nama)
             tupdata = (id_siswa, nis, nama, id_kelas, jk, nomorhp, kodeunik )
             listdata.append(tupdata)
 
-            print(tupdata)
-
+           
+    print("[INFO] - Membaca data sebanyak ", len(listdata), " record.")
 
     return listdata
 
@@ -137,6 +163,62 @@ def insertdata(mydb, listdata):
 
 
 
+# pisah data berdasarkan kelas
+def listDataByKelasID(listData, id_kelas):
+    listdata = []
+    
+    for data in listData:
+        if data[3] == id_kelas:
+            listdata.append(data)
+
+    return listdata
+
+
+# insert data for kelas XII
+def insertDataKelasXII(start=1):
+    # read data
+    listdata = parsingDataSource("XII.xlsx", listKelasXII, start)
+    total = 0
+
+    # parsing per list kelas
+    for kelas_id in listKelasXII:
+        listOfData = listDataByKelasID(listdata, kelas_id)
+        
+        # kirim data ke server
+        if len(listOfData) > 0:
+            insertdata(mydb, listOfData)
+            total = total + len(listOfData)
+        else:
+            print("ID Kelas ", kelas_id, " tidak valid")
+
+    print("Total data yang masuk ", total, " record.")
+    return total 
+
+
+# insert data for kelas XI
+def insertDataKelasXI(start=1):    
+    # read data
+    listdata = parsingDataSource("XI.xlsx", listKelasXI, start)
+    total = 0
+
+    # parsing per list kelas
+    for kelas_id in listKelasXI:
+        listOfData = listDataByKelasID(listdata, kelas_id)
+        
+        # kirim data ke server
+        if len(listOfData) > 0:
+            insertdata(mydb, listOfData)
+            total = total + len(listOfData)
+        else:
+            print("ID Kelas ", kelas_id, " tidak valid")
+
+    print("Total data yang masuk ", total, " record.")
+    return total
+
+
+
+
+
 
 # connecting to the database
 mydb = mysql.connector.connect(
@@ -150,8 +232,12 @@ print(mydb)
 
 
 
-# read data
-listdata = parsingDataSource("XI.xlsx", listKelasXI, 1)
+# hapus dulu semua data
+deleteAllData(mydb)
 
-# kirim data ke server
-insertdata(mydb, listdata)
+
+# insert data kelas XI
+total = insertDataKelasXI()
+
+# insert data kelas XII
+totalXII = insertDataKelasXII(start=total + 1)
