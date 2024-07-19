@@ -89,7 +89,7 @@ print("[INFO] - Starting uploader")
 dataframe = openpyxl.load_workbook(filename)
 
 # Define variable to read sheet
-dataframe1 = dataframe.active\
+dataframe1 = dataframe.active
 
 # temporary data
 listdata = []
