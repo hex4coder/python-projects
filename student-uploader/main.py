@@ -28,6 +28,17 @@ listKelasXII = [
     16
 ]
 
+listKelasX = [
+    "kelas X",
+    5,
+    20,
+    21,
+    3,
+    4,
+    22,
+    23,
+    24
+]
 
 # generate unique code
 def generate_unique_code(nis, nama):
@@ -216,6 +227,25 @@ def insertDataKelasXI(start=1):
     return total
 
 
+# insert data for kelas X\
+def insertDataKelasX(start=1):    
+    # read data
+    listdata = parsingDataSource("X.xlsx", listKelasX, start)
+    total = 0
+
+    # parsing per list kelas
+    for kelas_id in listKelasX:
+        listOfData = listDataByKelasID(listdata, kelas_id)
+        
+        # kirim data ke server
+        if len(listOfData) > 0:
+            insertdata(mydb, listOfData)
+            total = total + len(listOfData)
+        else:
+            print("ID Kelas ", kelas_id, " tidak valid")
+
+    print("Total data yang masuk ", total, " record.")
+    return total
 
 
 
@@ -241,3 +271,6 @@ total = insertDataKelasXI()
 
 # insert data kelas XII
 totalXII = insertDataKelasXII(start=total + 1)
+
+# data kelas X
+totalX = insertDataKelasX(start=total + totalXII + 1)
