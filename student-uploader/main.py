@@ -142,6 +142,7 @@ def parsingDataSource(filename, listKelas, startpoint=1):
 
 
 
+
         if nama != "" and nis != "" and jk != "":
             id_siswa = id_siswa + 1
             nama = nama.upper().strip()
